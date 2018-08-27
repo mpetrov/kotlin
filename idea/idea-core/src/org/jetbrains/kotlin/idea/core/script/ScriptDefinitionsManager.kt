@@ -38,7 +38,6 @@ import org.jetbrains.kotlin.idea.caches.project.getScriptRelatedModuleInfo
 import org.jetbrains.kotlin.idea.util.ProjectRootsUtil.isInContent
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.script.*
-import org.jetbrains.kotlin.scripting.compiler.plugin.KotlinScriptDefinitionAdapterFromNewAPIBase
 import org.jetbrains.kotlin.scripting.compiler.plugin.KotlinScriptDefinitionAdapterFromNewAPI
 import org.jetbrains.kotlin.utils.PathUtil
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
@@ -49,12 +48,12 @@ import kotlin.concurrent.write
 import kotlin.script.dependencies.Environment
 import kotlin.script.dependencies.ScriptContents
 import kotlin.script.experimental.api.KotlinType
-import kotlin.script.experimental.host.ScriptingHostConfiguration
-import kotlin.script.experimental.host.configurationDependencies
-import kotlin.script.experimental.host.createScriptCompilationConfigurationFromAnnotatedBaseClass
 import kotlin.script.experimental.dependencies.DependenciesResolver
 import kotlin.script.experimental.dependencies.ScriptDependencies
 import kotlin.script.experimental.dependencies.asSuccess
+import kotlin.script.experimental.host.ScriptingHostConfiguration
+import kotlin.script.experimental.host.configurationDependencies
+import kotlin.script.experimental.host.createScriptCompilationConfigurationFromAnnotatedBaseClass
 import kotlin.script.experimental.jvm.JvmDependency
 import kotlin.script.experimental.jvm.defaultJvmScriptingEnvironment
 import kotlin.script.experimental.location.ScriptExpectedLocation
@@ -134,18 +133,17 @@ class ScriptDefinitionsManager(private val project: Project) : LazyScriptDefinit
         assert(lock.isWriteLocked) { "updateDefinitions should only be called under the write lock" }
         definitions = definitionsByContributor.values.flattenTo(mutableListOf()).asSequence()
 
-        // Register new file extensions
         val fileTypeManager = FileTypeManager.getInstance()
-        val extensions = definitions?.mapNotNull { definition ->
-            (definition as? KotlinScriptDefinitionAdapterFromNewAPIBase)
-                ?.scriptFileExtensionWithDot?.removePrefix(".")
-                ?.takeIf { fileTypeManager.getFileTypeByExtension(it) != KotlinFileType.INSTANCE }
-        }?.toList()
 
-        if (extensions?.isNotEmpty() == true) {
+        val newExtensions = getKnownFilenameExtensions().filter {
+            fileTypeManager.getFileTypeByExtension(it) != KotlinFileType.INSTANCE
+        }.toList()
+
+        if (newExtensions.any()) {
+            // Register new file extensions
             ApplicationManager.getApplication().invokeLater {
                 runWriteAction {
-                    extensions.forEach {
+                    newExtensions.forEach {
                         fileTypeManager.associateExtension(KotlinFileType.INSTANCE, it)
                     }
                 }
