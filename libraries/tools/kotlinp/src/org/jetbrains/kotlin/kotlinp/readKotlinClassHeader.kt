@@ -29,7 +29,6 @@ internal fun File.readKotlinClassHeader(): KotlinClassHeader? {
     return header
 }
 
-@Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 private fun readMetadataVisitor(output: (KotlinClassHeader) -> Unit): AnnotationVisitor =
     object : AnnotationVisitor(Opcodes.ASM4) {
         var kind: Int? = null
@@ -43,19 +42,19 @@ private fun readMetadataVisitor(output: (KotlinClassHeader) -> Unit): Annotation
 
         override fun visit(name: String?, value: Any?) {
             when (name) {
-                Metadata::k.name -> kind = value as? Int
-                Metadata::mv.name -> metadataVersion = value as? IntArray
-                Metadata::bv.name -> bytecodeVersion = value as? IntArray
-                Metadata::xs.name -> extraString = value as? String
-                Metadata::xi.name -> extraInt = value as? Int
-                Metadata::pn.name -> packageName = value as? String
+                Metadata::kind.name -> kind = value as? Int
+                Metadata::metadataVersion.name -> metadataVersion = value as? IntArray
+                Metadata::bytecodeVersion.name -> bytecodeVersion = value as? IntArray
+                Metadata::extraString.name -> extraString = value as? String
+                Metadata::extraInt.name -> extraInt = value as? Int
+                Metadata::packageName.name -> packageName = value as? String
             }
         }
 
         override fun visitArray(name: String?): AnnotationVisitor? =
             when (name) {
-                Metadata::d1.name -> stringArrayVisitor { data1 = it }
-                Metadata::d2.name -> stringArrayVisitor { data2 = it }
+                Metadata::data1.name -> stringArrayVisitor { data1 = it }
+                Metadata::data2.name -> stringArrayVisitor { data2 = it }
                 else -> null
             }
 
