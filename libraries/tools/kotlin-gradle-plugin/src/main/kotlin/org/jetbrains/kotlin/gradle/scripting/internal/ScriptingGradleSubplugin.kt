@@ -7,16 +7,51 @@ package org.jetbrains.kotlin.gradle.scripting.internal
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.compile.AbstractCompile
 import org.jetbrains.kotlin.gradle.plugin.*
+import org.jetbrains.kotlin.gradle.plugin.source.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.scripting.ScriptingExtension
+import org.jetbrains.kotlin.gradle.tasks.GradleMessageCollector
+import org.jetbrains.kotlin.script.KotlinScriptDefinition
+import org.jetbrains.kotlin.scripting.compiler.plugin.ScriptDefinitionsFromClasspathDiscoverySource
 
 class ScriptingGradleSubplugin : Plugin<Project> {
     companion object {
         fun isEnabled(project: Project) = project.plugins.findPlugin(ScriptingGradleSubplugin::class.java) != null
     }
 
-    override fun apply(project: Project) {}
+    override fun apply(project: Project) {
+
+        project.afterEvaluate {
+            val javaPluginConvention = project.convention.findPlugin(JavaPluginConvention::class.java)
+            val messageCollector = GradleMessageCollector(project.logger)
+            if (javaPluginConvention?.sourceSets?.isEmpty() == false) {
+                for (sourceSet: SourceSet in javaPluginConvention.sourceSets) {
+                    if (sourceSet.name == "main" || sourceSet.name == "test") {
+                        val classpath = sourceSet.runtimeClasspath.files.toList()
+                        val definitions = ScriptDefinitionsFromClasspathDiscoverySource(classpath, emptyMap(), messageCollector).definitions
+                        val kotlinSourceSet = sourceSet.getConvention(KOTLIN_DSL_NAME) as? KotlinSourceSet
+                        if (kotlinSourceSet == null) {
+                            project.logger.warn("kotlin scripting plugin: kotlin source set not found: $project.$sourceSet")
+                            continue
+                        }
+                        val knownExtensions = kotlinSourceSet.kotlin.filter.includes.mapTo(hashSetOf()) {
+                            it.substringAfterLast('/').substringAfterLast('\\').substringAfterLast('*').substringAfter('.')
+                        }
+                        val extensions = definitions.map(KotlinScriptDefinition::fileExtension).filter { it !in knownExtensions }.toList()
+                        if (extensions.isNotEmpty()) {
+                            project.logger.info("kotlin scripting plugin: Add new extensions to the sourceset $project.$sourceSet: $extensions")
+                            kotlinSourceSet.kotlin.filter.include(extensions.map { "**/*.$it" })
+                        }
+                    }
+                }
+            } else {
+                project.logger.warn("kotlin scripting plugin: applied to a non-JVM project $project")
+            }
+        }
+    }
 }
 
 class ScriptingKotlinGradleSubplugin : KotlinGradleSubplugin<AbstractCompile> {
