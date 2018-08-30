@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull
 import org.jetbrains.annotations.Nullable
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.asJava.LightClassGenerationSupport
+import org.jetbrains.kotlin.asJava.classes.KtUltraLightParameter
 import org.jetbrains.kotlin.asJava.classes.cannotModify
 import org.jetbrains.kotlin.asJava.classes.lazyPub
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
@@ -260,6 +261,10 @@ class KtLightNullabilityAnnotation(val member: KtLightElement<*, PsiModifierList
         if (annotatedElement is KtParameter) {
             if (annotatedElement.containingClassOrObject?.isAnnotation() == true) return null
             if (isNullableInJvmOverloads(annotatedElement)) return Nullable::class.java.name
+        }
+
+        if (member is KtUltraLightParameter && member.isReceiver()) {
+            return NotNull::class.java.name
         }
 
         // don't annotate property setters

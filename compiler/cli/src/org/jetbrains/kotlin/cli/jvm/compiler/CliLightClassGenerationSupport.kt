@@ -22,9 +22,11 @@ import org.jetbrains.kotlin.asJava.builder.InvalidLightClassDataHolder
 import org.jetbrains.kotlin.asJava.builder.LightClassConstructionContext
 import org.jetbrains.kotlin.asJava.builder.LightClassDataHolder
 import org.jetbrains.kotlin.asJava.builder.LightClassDataHolderImpl
+import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.resolve.BindingContext
+import java.util.*
 
 /**
  * This class solves the problem of interdependency between analyzing Kotlin code and generating JetLightClasses
@@ -39,6 +41,14 @@ import org.jetbrains.kotlin.resolve.BindingContext
  * To mitigate this, CliLightClassGenerationSupport hold a trace that is shared between the analyzer and JetLightClasses
  */
 class CliLightClassGenerationSupport(private val traceHolder: CliTraceHolder) : LightClassGenerationSupport() {
+    override fun getModuleName(element: KtElement): String = traceHolder.module.name.asString()
+
+    override fun hasCompilerPluginsPossiblyAffectingDeclarations(element: KtElement): Boolean =
+        ServiceLoader.load(ComponentRegistrar::class.java).any { it.canAffectLightClasses() }
+
+    private fun ComponentRegistrar.canAffectLightClasses() =
+        javaClass.simpleName != "ScriptingCompilerConfigurationComponentRegistrar"
+
     override fun createDataHolderForClass(classOrObject: KtClassOrObject, builder: LightClassBuilder): LightClassDataHolder.ForClass {
         //force resolve companion for light class generation
         traceHolder.bindingContext.get(BindingContext.CLASS, classOrObject)?.companionObjectDescriptor

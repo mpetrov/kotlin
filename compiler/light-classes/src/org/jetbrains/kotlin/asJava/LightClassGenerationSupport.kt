@@ -40,6 +40,10 @@ abstract class LightClassGenerationSupport {
 
     abstract fun analyzeWithContent(element: KtClassOrObject): BindingContext
 
+    abstract fun getModuleName(element: KtElement): String
+
+    abstract fun hasCompilerPluginsPossiblyAffectingDeclarations(element: KtElement): Boolean
+
     companion object {
         @JvmStatic
         fun getInstance(project: Project): LightClassGenerationSupport {

@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.idea.caches.resolve
 
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.kotlin.asJava.LightClassBuilder
@@ -27,12 +28,23 @@ import org.jetbrains.kotlin.asJava.finder.JavaElementFinder
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.idea.caches.lightClasses.IDELightClassContexts
 import org.jetbrains.kotlin.idea.caches.lightClasses.LazyLightClassDataHolder
+import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.kotlin.idea.resolve.frontendService
+import org.jetbrains.kotlin.load.java.JvmAbi
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.lazy.NoDescriptorForDeclarationException
 
 class IDELightClassGenerationSupport(project: Project) : LightClassGenerationSupport() {
+    override fun getModuleName(element: KtElement): String =
+        ModuleUtilCore.findModuleForPsiElement(element)?.name ?: JvmAbi.DEFAULT_MODULE_NAME
+
+    override fun hasCompilerPluginsPossiblyAffectingDeclarations(element: KtElement): Boolean {
+        val module = ModuleUtilCore.findModuleForPsiElement(element) ?: return false
+        val facet = KotlinFacet.get(module)?: return false
+        return facet.configuration.settings.compilerArguments?.pluginClasspaths.isNullOrEmpty()
+    }
+
     private val scopeFileComparator = JavaElementFinder.byClasspathComparator(GlobalSearchScope.allScope(project))
 
     override fun createDataHolderForClass(classOrObject: KtClassOrObject, builder: LightClassBuilder): LightClassDataHolder.ForClass {
