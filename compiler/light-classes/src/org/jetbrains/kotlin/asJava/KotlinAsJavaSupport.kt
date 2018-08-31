@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.asJava
 
 import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.search.GlobalSearchScope

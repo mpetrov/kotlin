@@ -8,13 +8,11 @@
 var lambda = {}
 
 class A {
-    val prop = Runnable {
-        lambda = { println("") }
-    }
+    val prop = {}
 }
 
 fun box(): String {
-    A().prop.run()
+    A().prop()
 
     val javaClass = lambda.javaClass
 
