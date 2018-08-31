@@ -103,8 +103,8 @@ abstract class AbstractSpecTestValidator<T : AbstractSpecTest>(private val testD
     companion object {
         const val ISSUE_TRACKER = "https://youtrack.jetbrains.com/issue/"
         const val INTEGER_REGEX = """[1-9]\d*"""
-        const val MULTILINE_COMMENT_REGEX = """\/\*\s*%s\s+\*\/"""
-        private const val SINGLELINE_COMMENT_REGEX = """\/\/\s*%s"""
+        const val MULTILINE_COMMENT_REGEX = """\/\*\s*%s\s+\*\/\n*"""
+        private const val SINGLELINE_COMMENT_REGEX = """\/\/\s*%s\n*"""
 
         val pathSeparator: String = Pattern.quote(File.separator)
         val lineSeparator: String = System.lineSeparator()
@@ -219,8 +219,8 @@ abstract class AbstractSpecTestValidator<T : AbstractSpecTest>(private val testD
     abstract fun getSingleTestCase(testInfoElements: SpecTestInfoElements<SpecTestInfoElementType>) : SpecTestCase
 
     fun testInfoFilter(fileContent: String): String =
-        testInfoPattern.matcher(fileContent).replaceAll("").also {
-            testCaseInfoSingleLinePattern.matcher(it).replaceAll("").also {
+        testInfoPattern.matcher(fileContent).replaceAll("").let {
+            testCaseInfoSingleLinePattern.matcher(it).replaceAll("").let {
                 testCaseInfoMultilinePattern.matcher(it).replaceAll("")
             }
         }
