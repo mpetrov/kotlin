@@ -13,10 +13,10 @@ import org.jetbrains.kotlin.name.Name
 
 object InlineClassDescriptorResolver {
     @JvmField
-    val BOX_METHOD_NAME = Name.identifier("box")
+    val BOX_METHOD_NAME = Name.identifier("box-")
 
     @JvmField
-    val UNBOX_METHOD_NAME = Name.identifier("unbox")
+    val UNBOX_METHOD_NAME = Name.identifier("unbox-")
 
     private val BOXING_VALUE_PARAMETER_NAME = Name.identifier("v")
 

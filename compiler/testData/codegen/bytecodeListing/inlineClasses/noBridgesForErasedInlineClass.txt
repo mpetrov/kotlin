@@ -6,7 +6,7 @@ public interface A {
 @kotlin.Metadata
 static class Foo-Erased {
     method <init>(): void
-    public final static @org.jetbrains.annotations.NotNull method box(p0: long): Foo
+    public final static @org.jetbrains.annotations.NotNull method box-(p0: long): Foo
     public static method constructor(p0: long): long
     public static method equals(p0: long, @org.jetbrains.annotations.Nullable p1: java.lang.Object): boolean
     public static method foo-1e4ch6lh(p0: long, p1: long): void
@@ -24,5 +24,5 @@ public final class Foo {
     public final method getX(): long
     public method hashCode(): int
     public method toString(): java.lang.String
-    public final method unbox(): long
+    public final method unbox-(): long
 }
