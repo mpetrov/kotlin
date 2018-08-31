@@ -53,7 +53,8 @@ class DefaultKotlinSourceSet(
         get() = lowerCamelCaseName(runtimeOnlyConfigurationName, METADATA_CONFIGURATION_NAME_SUFFIX)
 
     override val kotlin: SourceDirectorySet = createDefaultSourceDirectorySet(name + " Kotlin source", fileResolver).apply {
-        filter.include("**/*.java", "**/*.kt", "**/*.kts")
+        filter.include("**/*.java")
+        sourceFilesExtensions("kt", "kts")
     }
 
     override val languageSettings: LanguageSettingsBuilder = DefaultLanguageSettingsBuilder()
@@ -89,6 +90,18 @@ class DefaultKotlinSourceSet(
         get() = dependsOnSourceSetsImpl
 
     override fun toString(): String = "source set $name"
+
+    private val knownFileExtensionsSet = mutableSetOf<String>()
+
+    override val sourceFilesExtensions: Set<String> get() = knownFileExtensionsSet
+
+    override fun sourceFilesExtensions(vararg extensions: String) {
+        val newExtensions = extensions.filter { it !in knownFileExtensionsSet }.toList()
+        if (newExtensions.isNotEmpty()) {
+            knownFileExtensionsSet.addAll(newExtensions)
+            kotlin.filter.include(newExtensions.map { "**/*.$it" })
+        }
+    }
 }
 
 private fun KotlinSourceSet.checkForCircularDependencies(): Unit {

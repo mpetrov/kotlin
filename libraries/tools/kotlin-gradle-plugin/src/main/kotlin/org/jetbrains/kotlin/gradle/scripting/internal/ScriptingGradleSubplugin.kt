@@ -37,13 +37,10 @@ class ScriptingGradleSubplugin : Plugin<Project> {
                             project.logger.warn("kotlin scripting plugin: kotlin source set not found: $project.$sourceSet")
                             continue
                         }
-                        val knownExtensions = kotlinSourceSet.kotlin.filter.includes.mapTo(hashSetOf()) {
-                            it.substringAfterLast('/').substringAfterLast('\\').substringAfterLast('*').substringAfter('.')
-                        }
-                        val extensions = definitions.map(KotlinScriptDefinition::fileExtension).filter { it !in knownExtensions }.toList()
+                        val extensions = definitions.mapTo(arrayListOf(), KotlinScriptDefinition::fileExtension)
                         if (extensions.isNotEmpty()) {
                             project.logger.info("kotlin scripting plugin: Add new extensions to the sourceset $project.$sourceSet: $extensions")
-                            kotlinSourceSet.kotlin.filter.include(extensions.map { "**/*.$it" })
+                            kotlinSourceSet.sourceFilesExtensions(*extensions.toTypedArray())
                         }
                     }
                 }

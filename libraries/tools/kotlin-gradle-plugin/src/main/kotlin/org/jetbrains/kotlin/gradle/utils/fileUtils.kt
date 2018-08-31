@@ -13,7 +13,8 @@ import java.util.*
 internal fun File.isJavaFile() =
     extension.equals("java", ignoreCase = true)
 
-internal fun File.isKotlinFile(): Boolean = !isJavaFile()
+internal fun File.isKotlinFile(sourceFilesExtensions: Set<String>): Boolean =
+    !isJavaFile() && extension in sourceFilesExtensions
 
 internal fun File.isClassFile(): Boolean =
     extension.equals("class", ignoreCase = true)

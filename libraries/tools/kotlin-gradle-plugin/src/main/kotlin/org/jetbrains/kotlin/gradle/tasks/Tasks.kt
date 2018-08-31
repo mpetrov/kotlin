@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.gradle.tasks
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.logging.Logger
 import org.gradle.api.plugins.BasePluginConvention
 import org.gradle.api.tasks.*
@@ -76,6 +77,8 @@ abstract class AbstractKotlinCompileTool<T : CommonToolArguments>() : AbstractCo
     @InputFiles
     @PathSensitive(PathSensitivity.RELATIVE)
     override fun getSource() = super.getSource()
+
+    protected fun getSourceFilesExtensions(): Set<String> = linkedSetOf("kt", "kts")
 
     @get:Input
     internal var useFallbackCompilerSearch: Boolean = false
@@ -360,7 +363,7 @@ open class KotlinCompile : AbstractKotlinCompile<K2JVMCompilerArguments>(), Kotl
     }
 
     @Internal
-    override fun getSourceRoots() = SourceRoots.ForJvm.create(getSource(), sourceRootsContainer)
+    override fun getSourceRoots() = SourceRoots.ForJvm.create(getSource(), sourceRootsContainer, getSourceFilesExtensions())
 
     override fun callCompiler(args: K2JVMCompilerArguments, sourceRoots: SourceRoots, changedFiles: ChangedFiles) {
         sourceRoots as SourceRoots.ForJvm
@@ -487,7 +490,7 @@ open class Kotlin2JsCompile() : AbstractKotlinCompile<K2JSCompilerArguments>(), 
         kotlinOptionsImpl.updateArguments(args)
     }
 
-    override fun getSourceRoots() = SourceRoots.KotlinOnly.create(getSource())
+    override fun getSourceRoots() = SourceRoots.KotlinOnly.create(getSource(), getSourceFilesExtensions())
 
     @get:InputFiles
     @get:Optional
